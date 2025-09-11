@@ -1,0 +1,237 @@
+#include <iostream>
+using namespace std;
+
+// ================= Base Class =================
+class BankAccount {
+private:  // Encapsulation: private data
+    int accountNumber;
+    string accountHolderName;
+    double balance;
+
+public:
+    // Constructor
+    BankAccount(int accNo, string name, double bal) {
+        accountNumber = accNo;
+        accountHolderName = name;
+        balance = bal;
+    }
+
+    // Deposit
+    virtual void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            cout << "Deposit Successful! New Balance: " << balance << endl;
+        } else {
+            cout << "Invalid deposit amount!" << endl;
+        }
+    }
+
+    // Withdraw
+    virtual void withdraw(double amount) {
+        if (amount > 0 && amount <= balance) {
+            balance -= amount;
+            cout << "Withdraw Successful! New Balance: " << balance << endl;
+        } else {
+            cout << "Insufficient funds or invalid amount!" << endl;
+        }
+    }
+
+    // Getters & Setters
+    double getBalance() const { return balance; }
+    void setBalance(double newBal) { balance = newBal; }
+
+    int getAccountNumber() const { return accountNumber; }
+    string getAccountHolderName() const { return accountHolderName; }
+
+    // Display Info
+    virtual void displayAccountInfo() {
+        cout << "\n-----------------------------" << endl;
+        cout << "Account Number : " << accountNumber << endl;
+        cout << "Account Holder : " << accountHolderName << endl;
+        cout << "Balance        : " << balance << endl;
+    }
+
+    // Polymorphism
+    virtual void calculateInterest() {
+        cout << "Interest calculation not applicable for this account type." << endl;
+    }
+
+    virtual ~BankAccount() {}
+};
+
+// ================= Derived Class: SavingsAccount =================
+class SavingsAccount : public BankAccount {
+private:
+    double interestRate;
+
+public:
+    SavingsAccount(int accNo, string name, double bal, double rate)
+        : BankAccount(accNo, name, bal), interestRate(rate) {}
+
+    void calculateInterest() override {
+        double interest = getBalance() * interestRate / 100;
+        cout << "Savings Account Interest: " << interest << endl;
+    }
+
+    void displayAccountInfo() override {
+        BankAccount::displayAccountInfo();
+        cout << "Account Type   : Savings Account" << endl;
+        cout << "Interest Rate  : " << interestRate << "%" << endl;
+        cout << "-----------------------------" << endl;
+    }
+};
+
+// ================= Derived Class: CheckingAccount =================
+class CheckingAccount : public BankAccount {
+private:
+    double overdraftLimit;
+
+public:
+    CheckingAccount(int accNo, string name, double bal, double limit)
+        : BankAccount(accNo, name, bal), overdraftLimit(limit) {}
+
+    void withdraw(double amount) override {
+        if (amount > 0 && amount <= getBalance() + overdraftLimit) {
+            setBalance(getBalance() - amount);
+            cout << "Withdraw Successful! New Balance: " << getBalance() << endl;
+            if (getBalance() < 0) {
+                cout << "Warning! Account is in overdraft." << endl;
+            }
+        } else {
+            cout << "Withdrawal exceeds overdraft limit!" << endl;
+        }
+    }
+
+    void displayAccountInfo() override {
+        BankAccount::displayAccountInfo();
+        cout << "Account Type   : Checking Account" << endl;
+        cout << "Overdraft Limit: " << overdraftLimit << endl;
+        cout << "-----------------------------" << endl;
+    }
+};
+
+// ================= Derived Class: FixedDepositAccount =================
+class FixedDepositAccount : public BankAccount {
+private:
+    int term; // in months
+    double interestRate;
+
+public:
+    FixedDepositAccount(int accNo, string name, double bal, int t, double rate)
+        : BankAccount(accNo, name, bal), term(t), interestRate(rate) {}
+
+    void deposit(double amount) override {
+        cout << "Deposit not allowed in Fixed Deposit Account!" << endl;
+    }
+
+    void withdraw(double amount) override {
+        cout << "Withdrawal not allowed before maturity in Fixed Deposit Account!" << endl;
+    }
+
+    void calculateInterest() override {
+        double interest = getBalance() * interestRate * term / (12 * 100);
+        cout << "Fixed Deposit Interest for " << term << " months: " << interest << endl;
+    }
+
+    void displayAccountInfo() override {
+        BankAccount::displayAccountInfo();
+        cout << "Account Type   : Fixed Deposit Account" << endl;
+        cout << "Term           : " << term << " months" << endl;
+        cout << "Interest Rate  : " << interestRate << "%" << endl;
+        cout << "-----------------------------" << endl;
+    }
+};
+
+// ================= Menu-Driven Program =================
+int main() {
+    BankAccount* account = nullptr;
+    int choice;
+
+    cout << "===== Banking System ======" << endl;
+    cout << "Select Account Type:" << endl;
+    cout << "1. Savings Account" << endl;
+    cout << "2. Checking Account" << endl;
+    cout << "3. Fixed Deposit Account" << endl;
+    cout << "Enter choice: ";
+    cin >> choice;
+
+    int accNo;
+    string name;
+    cout << "Enter Account Number: ";
+    cin >> accNo;
+    cin.ignore(); // to clear buffer
+    cout << "Enter Account Holder Name: ";
+    getline(cin, name);
+
+    if (choice == 1) {
+        double initialBal, rate;
+        cout << "Enter initial balance for Savings Account: ";
+        cin >> initialBal;
+        cout << "Enter interest rate (%): ";
+        cin >> rate;
+        account = new SavingsAccount(accNo, name, initialBal, rate);
+    }
+    else if (choice == 2) {
+        double initialBal, limit;
+        cout << "Enter initial balance for Checking Account: ";
+        cin >> initialBal;
+        cout << "Enter overdraft limit: ";
+        cin >> limit;
+        account = new CheckingAccount(accNo, name, initialBal, limit);
+    }
+    else if (choice == 3) {
+        double initialBal, rate;
+        int term;
+        cout << "Enter deposit amount for Fixed Deposit Account: ";
+        cin >> initialBal;
+        cout << "Enter term (in months): ";
+        cin >> term;
+        cout << "Enter interest rate (%): ";
+        cin >> rate;
+        account = new FixedDepositAccount(accNo, name, initialBal, term, rate);
+    }
+    else {
+        cout << "Invalid choice!" << endl;
+        return 0;
+    }
+
+    int option;
+    do {
+        cout << "\n--- Menu ---" << endl;
+        cout << "1. Deposit" << endl;
+        cout << "2. Withdraw" << endl;
+        cout << "3. Display Account Info" << endl;
+        cout << "4. Calculate Interest" << endl;
+        cout << "5. Exit" << endl;
+        cout << "Enter option: ";
+        cin >> option;
+
+        double amount;
+        switch (option) {
+            case 1:
+                cout << "Enter amount to deposit: ";
+                cin >> amount;
+                account->deposit(amount);
+                break;
+            case 2:
+                cout << "Enter amount to withdraw: ";
+                cin >> amount;
+                account->withdraw(amount);
+                break;
+            case 3:
+                account->displayAccountInfo();
+                break;
+            case 4:
+                account->calculateInterest();
+                break;
+            case 5:
+                cout << "Exiting program." << endl;
+                break;
+            default:
+                cout << "Invalid option!" << endl;
+        }
+    } while (option != 5);
+
+    delete account;
+    return 0;
+}
