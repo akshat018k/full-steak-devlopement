@@ -3,20 +3,18 @@ using namespace std;
 
 // ================= Base Class =================
 class BankAccount {
-private:  // Encapsulation: private data
+private:  
     int accountNumber;
     string accountHolderName;
     double balance;
 
 public:
-    // Constructor
     BankAccount(int accNo, string name, double bal) {
         accountNumber = accNo;
         accountHolderName = name;
         balance = bal;
     }
 
-    // Deposit
     virtual void deposit(double amount) {
         if (amount > 0) {
             balance += amount;
@@ -26,7 +24,6 @@ public:
         }
     }
 
-    // Withdraw
     virtual void withdraw(double amount) {
         if (amount > 0 && amount <= balance) {
             balance -= amount;
@@ -36,14 +33,12 @@ public:
         }
     }
 
-    // Getters & Setters
     double getBalance() const { return balance; }
     void setBalance(double newBal) { balance = newBal; }
 
     int getAccountNumber() const { return accountNumber; }
     string getAccountHolderName() const { return accountHolderName; }
 
-    // Display Info
     virtual void displayAccountInfo() {
         cout << "\n-----------------------------" << endl;
         cout << "Account Number : " << accountNumber << endl;
@@ -51,7 +46,6 @@ public:
         cout << "Balance        : " << balance << endl;
     }
 
-    // Polymorphism
     virtual void calculateInterest() {
         cout << "Interest calculation not applicable for this account type." << endl;
     }
@@ -113,7 +107,7 @@ public:
 // ================= Derived Class: FixedDepositAccount =================
 class FixedDepositAccount : public BankAccount {
 private:
-    int term; // in months
+    int term;
     double interestRate;
 
 public:
@@ -142,7 +136,6 @@ public:
     }
 };
 
-// ================= Menu-Driven Program =================
 int main() {
     BankAccount* account = nullptr;
     int choice;
@@ -235,3 +228,59 @@ int main() {
     delete account;
     return 0;
 }
+
+"""
+===== Banking System ======
+Select Account Type:
+1. Savings Account
+2. Checking Account
+3. Fixed Deposit Account
+Enter choice: 1
+Enter Account Number: 101
+Enter Account Holder Name: rahul
+Enter initial balance for Savings Account: 50000
+Enter interest rate (%): 5.2
+
+--- Menu ---
+1. Deposit
+2. Withdraw
+3. Display Account Info
+4. Calculate Interest
+5. Exit
+Enter option: 2
+Enter amount to withdraw: 2000
+Withdraw Successful! New Balance: 48000
+
+--- Menu ---
+1. Deposit
+2. Withdraw
+3. Display Account Info
+4. Calculate Interest
+5. Exit
+Enter option: 3
+
+-----------------------------
+Account Number : 101
+Account Holder : rahul
+Balance        : 48000
+Account Type   : Savings Account
+Interest Rate  : 5.2%
+-----------------------------
+
+--- Menu ---
+1. Deposit
+2. Withdraw
+3. Display Account Info
+4. Calculate Interest
+5. Exit
+Enter option: 4
+Savings Account Interest: 2496
+
+--- Menu ---
+1. Deposit
+2. Withdraw
+3. Display Account Info
+4. Calculate Interest
+5. Exit
+Enter option: 5
+"""
