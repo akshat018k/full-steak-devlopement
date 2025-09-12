@@ -1,0 +1,177 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <memory> // for smart pointers
+using namespace std;
+
+// ============ Abstract Base Class =============
+class LibraryItem {
+protected:
+    string title;
+    string author;
+    string dueDate;
+
+public:
+    // constructor
+    LibraryItem(string t, string a, string d)
+        : title(t), author(a), dueDate(d) {}
+
+    // getters and setters (encapsulation)
+    string getTitle() const { return title; }
+    string getAuthor() const { return author; }
+    string getDueDate() const { return dueDate; }
+
+    void setTitle(string t) { title = t; }
+    void setAuthor(string a) { author = a; }
+    void setDueDate(string d) { dueDate = d; }
+
+    // pure virtual functions (abstraction)
+    virtual void checkOut() = 0;
+    virtual void returnItem() = 0;
+    virtual void displayDetails() const = 0;
+
+    // virtual destructor
+    virtual ~LibraryItem() {}
+};
+
+// ============ Derived Class Book ============
+class Book : public LibraryItem {
+private:
+    int pages;
+public:
+    Book(string t, string a, string d, int p)
+        : LibraryItem(t, a, d), pages(p) {}
+
+    void checkOut() override {
+        cout << "Book \"" << title << "\" checked out successfully.\n";
+    }
+    void returnItem() override {
+        cout << "Book \"" << title << "\" returned successfully.\n";
+    }
+    void displayDetails() const override {
+        cout << "Book: " << title << " | Author: " << author
+             << " | Due: " << dueDate << " | Pages: " << pages << "\n";
+    }
+};
+
+// ============ Derived Class DVD ============
+class DVD : public LibraryItem {
+private:
+    int duration;
+public:
+    DVD(string t, string a, string d, int dur)
+        : LibraryItem(t, a, d), duration(dur) {}
+
+    void checkOut() override {
+        cout << "DVD \"" << title << "\" checked out successfully.\n";
+    }
+    void returnItem() override {
+        cout << "DVD \"" << title << "\" returned successfully.\n";
+    }
+    void displayDetails() const override {
+        cout << "DVD: " << title << " | Author/Producer: " << author
+             << " | Due: " << dueDate << " | Duration: " << duration << " min\n";
+    }
+};
+
+// ============ Derived Class Magazine ============
+class Magazine : public LibraryItem {
+private:
+    int issueNo;
+public:
+    Magazine(string t, string a, string d, int issue)
+        : LibraryItem(t, a, d), issueNo(issue) {}
+
+    void checkOut() override {
+        cout << "Magazine \"" << title << "\" checked out successfully.\n";
+    }
+    void returnItem() override {
+        cout << "Magazine \"" << title << "\" returned successfully.\n";
+    }
+    void displayDetails() const override {
+        cout << "Magazine: " << title << " | Editor: " << author
+             << " | Due: " << dueDate << " | Issue No: " << issueNo << "\n";
+    }
+};
+
+// ============ Menu Driven System ============
+int main() {
+    vector<shared_ptr<LibraryItem>> items; // polymorphism with smart pointers
+    int choice;
+
+    do {
+        cout << "\n====== Library Management System ======\n";
+        cout << "1. Add Book\n";
+        cout << "2. Add DVD\n";
+        cout << "3. Add Magazine\n";
+        cout << "4. Display All Items\n";
+        cout << "5. Checkout Item\n";
+        cout << "6. Return Item\n";
+        cout << "0. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        try {
+            if (choice == 1) {
+                string t, a, d;
+                int pages;
+                cout << "Enter title: "; cin >> t;
+                cout << "Enter author: "; cin >> a;
+                cout << "Enter due date: "; cin >> d;
+                cout << "Enter pages: "; cin >> pages;
+                if (pages <= 0) throw invalid_argument("Invalid pages count!");
+                items.push_back(make_shared<Book>(t, a, d, pages));
+            }
+            else if (choice == 2) {
+                string t, a, d;
+                int dur;
+                cout << "Enter title: "; cin >> t;
+                cout << "Enter producer: "; cin >> a;
+                cout << "Enter due date: "; cin >> d;
+                cout << "Enter duration (min): "; cin >> dur;
+                if (dur <= 0) throw invalid_argument("Invalid duration!");
+                items.push_back(make_shared<DVD>(t, a, d, dur));
+            }
+            else if (choice == 3) {
+                string t, a, d;
+                int issue;
+                cout << "Enter title: "; cin >> t;
+                cout << "Enter editor: "; cin >> a;
+                cout << "Enter due date: "; cin >> d;
+                cout << "Enter issue number: "; cin >> issue;
+                if (issue <= 0) throw invalid_argument("Invalid issue number!");
+                items.push_back(make_shared<Magazine>(t, a, d, issue));
+            }
+            else if (choice == 4) {
+                for (auto &item : items)
+                    item->displayDetails();
+            }
+            else if (choice == 5) {
+                int index;
+                cout << "Enter item index to checkout (0.." << items.size()-1 << "): ";
+                cin >> index;
+                if (index < 0 || index >= (int)items.size())
+                    throw out_of_range("Invalid index!");
+                items[index]->checkOut();
+            }
+            else if (choice == 6) {
+                int index;
+                cout << "Enter item index to return (0.." << items.size()-1 << "): ";
+                cin >> index;
+                if (index < 0 || index >= (int)items.size())
+                    throw out_of_range("Invalid index!");
+                items[index]->returnItem();
+            }
+            else if (choice == 0) {
+                cout << "Exiting...\n";
+            }
+            else {
+                cout << "Invalid choice!\n";
+            }
+        } catch (exception &e) {
+            cout << "Error: " << e.what() << "\n";
+        }
+    } while (choice != 0);
+
+    return 0;
+}
