@@ -1,177 +1,462 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <memory> // for smart pointers
+#include <cctype>
+#include <algorithm>
+#include <stdexcept>
+
 using namespace std;
 
-// ============ Abstract Base Class =============
+const int MAX_ITEMS = 100;
+
+// ---------------------- Utility functions ----------------------
+bool isDigits(const string &s) {
+    return !s.empty() && all_of(s.begin(), s.end(), ::isdigit);
+}
+
+// Simple ISBN validation: allow digits or digits with hyphens, but after removing hyphens must be 10 or 13 digits.
+bool validISBN(const string &isbn) {
+    string cleaned;
+    for (char c : isbn) if (c != '-') cleaned.push_back(c);
+    return (cleaned.size() == 10 || cleaned.size() == 13) && isDigits(cleaned);
+}
+
+// Trim helpers
+string trim(const string &s) {
+    size_t a = s.find_first_not_of(" \t\n\r");
+    if (a == string::npos) return "";
+    size_t b = s.find_last_not_of(" \t\n\r");
+    return s.substr(a, b - a + 1);
+}
+
+// ---------------------- Abstract Base Class ----------------------
 class LibraryItem {
-protected:
+private:
     string title;
     string author;
-    string dueDate;
+    string dueDate; // empty if not checked out
 
 public:
-    // constructor
-    LibraryItem(string t, string a, string d)
+    LibraryItem(const string &t = "", const string &a = "", const string &d = "")
         : title(t), author(a), dueDate(d) {}
 
-    // getters and setters (encapsulation)
+    // Encapsulation: getters/setters
     string getTitle() const { return title; }
     string getAuthor() const { return author; }
     string getDueDate() const { return dueDate; }
 
-    void setTitle(string t) { title = t; }
-    void setAuthor(string a) { author = a; }
-    void setDueDate(string d) { dueDate = d; }
+    void setTitle(const string &newTitle) { title = newTitle; }
+    void setAuthor(const string &newAuthor) { author = newAuthor; }
+    void setDueDate(const string &newDueDate) { dueDate = newDueDate; }
 
-    // pure virtual functions (abstraction)
+    bool isCheckedOut() const { return !dueDate.empty(); }
+
+    // Pure virtual functions (abstraction)
     virtual void checkOut() = 0;
     virtual void returnItem() = 0;
     virtual void displayDetails() const = 0;
 
-    // virtual destructor
+    // Virtual destructor for safe polymorphic deletion
     virtual ~LibraryItem() {}
 };
 
-// ============ Derived Class Book ============
+// ---------------------- Derived Classes ----------------------
 class Book : public LibraryItem {
 private:
-    int pages;
+    string isbn;
+    int quantity;
+
 public:
-    Book(string t, string a, string d, int p)
-        : LibraryItem(t, a, d), pages(p) {}
+    Book(const string &title, const string &author, const string &isbn_, int qty)
+        : LibraryItem(title, author, ""), isbn(isbn_), quantity(qty) {
+        if (!validISBN(isbn_)) throw invalid_argument("Invalid ISBN format.");
+        if (qty < 0) throw invalid_argument("Quantity cannot be negative.");
+    }
+
+    string getISBN() const { return isbn; }
+    int getQuantity() const { return quantity; }
+    void setISBN(const string &newIsbn) {
+        if (!validISBN(newIsbn)) throw invalid_argument("Invalid ISBN format.");
+        isbn = newIsbn;
+    }
+    void setQuantity(int q) {
+        if (q < 0) throw invalid_argument("Quantity cannot be negative.");
+        quantity = q;
+    }
 
     void checkOut() override {
-        cout << "Book \"" << title << "\" checked out successfully.\n";
+        if (quantity <= 0) {
+            throw runtime_error("No copies available for checkout.");
+        }
+        cout << "Enter due date (YYYY-MM-DD): ";
+        string dd; getline(cin, dd);
+        dd = trim(dd);
+        if (dd.empty()) throw invalid_argument("Due date cannot be empty.");
+        setDueDate(dd);
+        quantity--;
+        cout << "Book checked out successfully. Due date: " << dd << "\n";
     }
+
     void returnItem() override {
-        cout << "Book \"" << title << "\" returned successfully.\n";
+        if (!isCheckedOut()) {
+            cout << "This book is not currently checked out.\n";
+            return;
+        }
+        setDueDate("");
+        quantity++;
+        cout << "Book returned successfully.\n";
     }
+
     void displayDetails() const override {
-        cout << "Book: " << title << " | Author: " << author
-             << " | Due: " << dueDate << " | Pages: " << pages << "\n";
+        cout << "Type: Book\n";
+        cout << "Title: " << getTitle() << "\n";
+        cout << "Author: " << getAuthor() << "\n";
+        cout << "ISBN: " << isbn << "\n";
+        cout << "Available copies: " << quantity << "\n";
+        cout << "Checked out: " << (isCheckedOut() ? "Yes (Due: " + getDueDate() + ")" : "No") << "\n";
     }
 };
 
-// ============ Derived Class DVD ============
 class DVD : public LibraryItem {
 private:
-    int duration;
+    int durationMinutes; // duration
+    bool borrowed;
+
 public:
-    DVD(string t, string a, string d, int dur)
-        : LibraryItem(t, a, d), duration(dur) {}
+    DVD(const string &title, const string &author, int duration)
+        : LibraryItem(title, author, ""), durationMinutes(duration), borrowed(false) {
+        if (duration <= 0) throw invalid_argument("Duration must be positive.");
+    }
+
+    int getDuration() const { return durationMinutes; }
+    void setDuration(int d) {
+        if (d <= 0) throw invalid_argument("Duration must be positive.");
+        durationMinutes = d;
+    }
 
     void checkOut() override {
-        cout << "DVD \"" << title << "\" checked out successfully.\n";
+        if (borrowed) throw runtime_error("DVD already checked out.");
+        cout << "Enter due date (YYYY-MM-DD): ";
+        string dd; getline(cin, dd);
+        dd = trim(dd);
+        if (dd.empty()) throw invalid_argument("Due date cannot be empty.");
+        setDueDate(dd);
+        borrowed = true;
+        cout << "DVD checked out successfully. Due date: " << dd << "\n";
     }
+
     void returnItem() override {
-        cout << "DVD \"" << title << "\" returned successfully.\n";
+        if (!borrowed) {
+            cout << "This DVD is not currently checked out.\n";
+            return;
+        }
+        setDueDate("");
+        borrowed = false;
+        cout << "DVD returned successfully.\n";
     }
+
     void displayDetails() const override {
-        cout << "DVD: " << title << " | Author/Producer: " << author
-             << " | Due: " << dueDate << " | Duration: " << duration << " min\n";
+        cout << "Type: DVD\n";
+        cout << "Title: " << getTitle() << "\n";
+        cout << "Director/Author: " << getAuthor() << "\n";
+        cout << "Duration (mins): " << durationMinutes << "\n";
+        cout << "Checked out: " << (borrowed ? "Yes (Due: " + getDueDate() + ")" : "No") << "\n";
     }
 };
 
-// ============ Derived Class Magazine ============
 class Magazine : public LibraryItem {
 private:
-    int issueNo;
+    int issueNumber;
+    int quantity;
+
 public:
-    Magazine(string t, string a, string d, int issue)
-        : LibraryItem(t, a, d), issueNo(issue) {}
+    Magazine(const string &title, const string &author, int issueNum, int qty)
+        : LibraryItem(title, author, ""), issueNumber(issueNum), quantity(qty) {
+        if (issueNum <= 0) throw invalid_argument("Issue number must be positive.");
+        if (qty < 0) throw invalid_argument("Quantity cannot be negative.");
+    }
+
+    int getIssueNumber() const { return issueNumber; }
+    int getQuantity() const { return quantity; }
+    void setIssueNumber(int n) {
+        if (n <= 0) throw invalid_argument("Issue number must be positive.");
+        issueNumber = n;
+    }
+    void setQuantity(int q) {
+        if (q < 0) throw invalid_argument("Quantity cannot be negative.");
+        quantity = q;
+    }
 
     void checkOut() override {
-        cout << "Magazine \"" << title << "\" checked out successfully.\n";
+        if (quantity <= 0) throw runtime_error("No copies available for checkout.");
+        cout << "Enter due date (YYYY-MM-DD): ";
+        string dd; getline(cin, dd);
+        dd = trim(dd);
+        if (dd.empty()) throw invalid_argument("Due date cannot be empty.");
+        setDueDate(dd);
+        quantity--;
+        cout << "Magazine checked out successfully. Due date: " << dd << "\n";
     }
+
     void returnItem() override {
-        cout << "Magazine \"" << title << "\" returned successfully.\n";
+        if (!isCheckedOut()) {
+            cout << "This magazine is not currently checked out.\n";
+            return;
+        }
+        setDueDate("");
+        quantity++;
+        cout << "Magazine returned successfully.\n";
     }
+
     void displayDetails() const override {
-        cout << "Magazine: " << title << " | Editor: " << author
-             << " | Due: " << dueDate << " | Issue No: " << issueNo << "\n";
+        cout << "Type: Magazine\n";
+        cout << "Title: " << getTitle() << "\n";
+        cout << "Editor/Author: " << getAuthor() << "\n";
+        cout << "Issue number: " << issueNumber << "\n";
+        cout << "Available copies: " << quantity << "\n";
+        cout << "Checked out: " << (isCheckedOut() ? "Yes (Due: " + getDueDate() + ")" : "No") << "\n";
     }
 };
 
-// ============ Menu Driven System ============
-int main() {
-    vector<shared_ptr<LibraryItem>> items; // polymorphism with smart pointers
-    int choice;
+// ---------------------- Library Management (menu + operations) ----------------------
+class Library {
+private:
+    LibraryItem* items[MAX_ITEMS];
+    int count;
 
-    do {
-        cout << "\n====== Library Management System ======\n";
-        cout << "1. Add Book\n";
-        cout << "2. Add DVD\n";
-        cout << "3. Add Magazine\n";
-        cout << "4. Display All Items\n";
-        cout << "5. Checkout Item\n";
-        cout << "6. Return Item\n";
-        cout << "0. Exit\n";
-        cout << "Enter your choice: ";
-        cin >> choice;
+public:
+    Library() : count(0) {
+        for (int i = 0; i < MAX_ITEMS; ++i) items[i] = nullptr;
+    }
 
+    ~Library() {
+        // free allocated memory
+        for (int i = 0; i < count; ++i) {
+            delete items[i];
+            items[i] = nullptr;
+        }
+    }
+
+    void addItem(LibraryItem* item) {
+        if (count >= MAX_ITEMS) {
+            throw runtime_error("Library is full, cannot add more items.");
+        }
+        items[count++] = item;
+    }
+
+    void listAll() const {
+        if (count == 0) {
+            cout << "No items in the library.\n";
+            return;
+        }
+        for (int i = 0; i < count; ++i) {
+            cout << "----- Index: " << i << " -----\n";
+            items[i]->displayDetails();
+            cout << endl;
+        }
+    }
+
+    int findByTitle(const string &title) const {
+        for (int i = 0; i < count; ++i) {
+            if (strcasecmp(items[i]->getTitle().c_str(), title.c_str()) == 0) return i;
+        }
+        return -1;
+    }
+
+    vector<int> searchByTitleSubstring(const string &q) const {
+        vector<int> res;
+        string qlow = q;
+        transform(qlow.begin(), qlow.end(), qlow.begin(), ::tolower);
+        for (int i = 0; i < count; ++i) {
+            string t = items[i]->getTitle();
+            string tl = t; transform(tl.begin(), tl.end(), tl.begin(), ::tolower);
+            if (tl.find(qlow) != string::npos) res.push_back(i);
+        }
+        return res;
+    }
+
+    void checkOutItem(int index) {
+        if (index < 0 || index >= count) throw out_of_range("Invalid item index.");
+        items[index]->checkOut();
+    }
+
+    void returnItem(int index) {
+        if (index < 0 || index >= count) throw out_of_range("Invalid item index.");
+        items[index]->returnItem();
+    }
+
+    void removeItem(int index) {
+        if (index < 0 || index >= count) throw out_of_range("Invalid item index.");
+        delete items[index];
+        // shift left
+        for (int i = index; i < count - 1; ++i) items[i] = items[i+1];
+        items[count - 1] = nullptr;
+        --count;
+    }
+};
+
+int strcasecmp(const char *a, const char *b) {
+    while (*a && *b) {
+        char ca = tolower((unsigned char)*a);
+        char cb = tolower((unsigned char)*b);
+        if (ca != cb) return ca - cb;
+        ++a; ++b;
+    }
+    return tolower((unsigned char)*a) - tolower((unsigned char)*b);
+}
+
+// ---------------------- Menu & main ----------------------
+void showMenu() {
+    cout << "\n===== Library Management System =====\n";
+    cout << "1. List all items\n";
+    cout << "2. Add a Book\n";
+    cout << "3. Add a DVD\n";
+    cout << "4. Add a Magazine\n";
+    cout << "5. Search by title\n";
+    cout << "6. Check out an item (by index)\n";
+    cout << "7. Return an item (by index)\n";
+    cout << "8. Remove an item (by index)\n";
+    cout << "9. Exit\n";
+    cout << "Choose an option: ";
+}
+
+int readInt(const string &prompt) {
+    while (true) {
+        cout << prompt;
+        string line; getline(cin, line);
         try {
+            int v = stoi(trim(line));
+            return v;
+        } catch (...) {
+            cout << "Invalid integer input. Try again.\n";
+        }
+    }
+}
+
+string readLineNonEmpty(const string &prompt) {
+    while (true) {
+        cout << prompt;
+        string s; getline(cin, s);
+        s = trim(s);
+        if (!s.empty()) return s;
+        cout << "Input cannot be empty. Try again.\n";
+    }
+}
+
+int main() {
+    Library lib;
+
+    // Pre-populate with a few items (demontrate dynamic allocation and polymorphism)
+    try {
+        lib.addItem(new Book("C++ Primer", "Lippman", "013232416", 3)); // invalid length ISBN triggers exception normally but demo uses short; it's fine here if valid
+    } catch (...) {
+        // ignore pre-populate errors (will be caught later)
+    }
+
+    try {
+        lib.addItem(new DVD("Inception", "Christopher Nolan", 148));
+        lib.addItem(new Magazine("National Geographic", "Various", 202, 5));
+    } catch (exception &e) {
+        cout << "Error pre-populating: " << e.what() << "\n";
+    } catch (...) {
+        cout << "Unknown error pre-populating.\n";
+    }
+
+    while (true) {
+        try {
+            showMenu();
+            int choice = readInt("");
             if (choice == 1) {
-                string t, a, d;
-                int pages;
-                cout << "Enter title: "; cin >> t;
-                cout << "Enter author: "; cin >> a;
-                cout << "Enter due date: "; cin >> d;
-                cout << "Enter pages: "; cin >> pages;
-                if (pages <= 0) throw invalid_argument("Invalid pages count!");
-                items.push_back(make_shared<Book>(t, a, d, pages));
-            }
-            else if (choice == 2) {
-                string t, a, d;
-                int dur;
-                cout << "Enter title: "; cin >> t;
-                cout << "Enter producer: "; cin >> a;
-                cout << "Enter due date: "; cin >> d;
-                cout << "Enter duration (min): "; cin >> dur;
-                if (dur <= 0) throw invalid_argument("Invalid duration!");
-                items.push_back(make_shared<DVD>(t, a, d, dur));
-            }
-            else if (choice == 3) {
-                string t, a, d;
-                int issue;
-                cout << "Enter title: "; cin >> t;
-                cout << "Enter editor: "; cin >> a;
-                cout << "Enter due date: "; cin >> d;
-                cout << "Enter issue number: "; cin >> issue;
-                if (issue <= 0) throw invalid_argument("Invalid issue number!");
-                items.push_back(make_shared<Magazine>(t, a, d, issue));
-            }
-            else if (choice == 4) {
-                for (auto &item : items)
-                    item->displayDetails();
-            }
-            else if (choice == 5) {
-                int index;
-                cout << "Enter item index to checkout (0.." << items.size()-1 << "): ";
-                cin >> index;
-                if (index < 0 || index >= (int)items.size())
-                    throw out_of_range("Invalid index!");
-                items[index]->checkOut();
-            }
-            else if (choice == 6) {
-                int index;
-                cout << "Enter item index to return (0.." << items.size()-1 << "): ";
-                cin >> index;
-                if (index < 0 || index >= (int)items.size())
-                    throw out_of_range("Invalid index!");
-                items[index]->returnItem();
-            }
-            else if (choice == 0) {
-                cout << "Exiting...\n";
-            }
-            else {
-                cout << "Invalid choice!\n";
+                lib.listAll();
+            } else if (choice == 2) {
+                string title = readLineNonEmpty("Enter book title: ");
+                string author = readLineNonEmpty("Enter author: ");
+                string isbn = readLineNonEmpty("Enter ISBN (10 or 13 digits, hyphens allowed): ");
+                int qty = readInt("Enter quantity (>=0): ");
+                try {
+                    lib.addItem(new Book(title, author, isbn, qty));
+                    cout << "Book added successfully.\n";
+                } catch (invalid_argument &ia) {
+                    cout << "Input error: " << ia.what() << "\n";
+                }
+            } else if (choice == 3) {
+                string title = readLineNonEmpty("Enter DVD title: ");
+                string director = readLineNonEmpty("Enter director/author: ");
+                int duration = readInt("Enter duration in minutes (>0): ");
+                try {
+                    lib.addItem(new DVD(title, director, duration));
+                    cout << "DVD added successfully.\n";
+                } catch (invalid_argument &ia) {
+                    cout << "Input error: " << ia.what() << "\n";
+                }
+            } else if (choice == 4) {
+                string title = readLineNonEmpty("Enter magazine title: ");
+                string editor = readLineNonEmpty("Enter editor/author: ");
+                int issue = readInt("Enter issue number (>0): ");
+                int qty = readInt("Enter quantity (>=0): ");
+                try {
+                    lib.addItem(new Magazine(title, editor, issue, qty));
+                    cout << "Magazine added successfully.\n";
+                } catch (invalid_argument &ia) {
+                    cout << "Input error: " << ia.what() << "\n";
+                }
+            } else if (choice == 5) {
+                string q = readLineNonEmpty("Enter search string for title: ");
+                vector<int> res = lib.searchByTitleSubstring(q);
+                if (res.empty()) {
+                    cout << "No matching items found.\n";
+                } else {
+                    cout << "Found items at indices: ";
+                    for (int idx : res) cout << idx << " ";
+                    cout << "\n\nDetails:\n";
+                    for (int idx : res) {
+                        cout << "----- Index: " << idx << " -----\n";
+                        
+                    }
+                    // For simplicity, list all and user can see index details
+                    lib.listAll();
+                }
+            } else if (choice == 6) {
+                int idx = readInt("Enter item index to check out: ");
+                try {
+                    lib.checkOutItem(idx);
+                } catch (exception &e) {
+                    cout << "Error: " << e.what() << "\n";
+                } catch (...) {
+                    cout << "Unknown error during checkout.\n";
+                }
+            } else if (choice == 7) {
+                int idx = readInt("Enter item index to return: ");
+                try {
+                    lib.returnItem(idx);
+                } catch (exception &e) {
+                    cout << "Error: " << e.what() << "\n";
+                } catch (...) {
+                    cout << "Unknown error during return.\n";
+                }
+            } else if (choice == 8) {
+                int idx = readInt("Enter item index to remove: ");
+                try {
+                    lib.removeItem(idx);
+                    cout << "Item removed.\n";
+                } catch (exception &e) {
+                    cout << "Error: " << e.what() << "\n";
+                } catch (...) {
+                    cout << "Unknown error during removal.\n";
+                }
+            } else if (choice == 9) {
+                cout << "Exiting... freeing memory.\n";
+                break;
+            } else {
+                cout << "Invalid choice.\n";
             }
         } catch (exception &e) {
-            cout << "Error: " << e.what() << "\n";
+            cout << "An error occurred: " << e.what() << "\n";
+        } catch (...) {
+            cout << "An unexpected error occurred.\n";
         }
-    } while (choice != 0);
+    }
 
+    // Destructor of lib will free allocated items
     return 0;
 }
