@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Welcome to prime video</title>
+
+    <!--favicon-->
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+
+    <!--font awesome-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!--fontsfamily-->
+    <link href="./CSS/fonts1.css" rel="stylesheet">
+
+    <!--custom css-->
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="row">
+                <div class="logo w-2">
+                    <a href="#"> <img src="./images/prime video logo.png" alt="logo"></a>
+                </div>
+                <div class="nav w-6 d-flex">
+                    <ul class="d-flex align-items-center  ">
+                        <li> <a href="./index.html" class="active">Home</a></li>
+                        <li> <a href="./pages/movie.html" class="active">Movie</a></li>
+                        <li> <a href="#" class="active">TV Show</a></li>
+                        <li> <a href="#" class="active">Live TV</a></li>
+                    </ul>
+                    <span class="line"></span>
+                    <div class=" d-flex  align-items-center alining">
+                        <span class="plus"><i class="fa-solid fa-square-plus"></i></span>
+                        <span>Subscriptions</span>
+                    </div>
+                </div>
+                <div class="w-4 ">
+                    <ul class=" align-items-center  align-vertical d-flex justify-content-end">
+                        <li>
+                            <button class="search"><i class="fa-solid fa-magnifying-glass"></i></button>
+                        </li>
+                        <li class="position-relative drop ">
+                            <button class=" arrow">EN<i class="fa-solid fa-angle-down"></i></button>
+                            <div class="dropdown position-absolute ">
+                                <ul class="d-flex flex-wrap gap ">
+                                    <li class="w-3"><button>list1</button> </li>
+                                    <li class="w-3"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                    <li class="w-3"><button>list1</button> </li>
+                                    <li class="w-3"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                    <li class="w-3"><button>list1</button> </li>
+                                    <li class="w-3"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                    <li class="w-3"><button>list1</button> </li>
+                                    <li class="w-3"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                    <li class="w-3"><button>list1</button> </li>
+                                    <li class="w-3"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                    <li class="w-2"><button>list1</button></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="dot position-relative drop ">
+                            <a href="#">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </a>
+                            <div class="dropdown     position-absolute ">
+                                <ul class="d-flex flex-wrap gap ">
+                                    <li class="w-4"><button>list1</button> </li>
+                                    <li class="w-4"><button>list1</button></li>
+                                    <li class="w-4"><button>list1</button></li>
+                                    <li class="w-4"><button>list1</button> </li>
+                                    <li class="w-4"><button>list1</button></li>
+                                    <li class="w-4"><button>list1</button></li>
+
+                                </ul>
+                            </div>
+                        </li>
+                        <li><button class="login-btn align-vertical"><img src="./images/logo.svg" alt="logo"></button>
+                        </li>
+                        <li><button class="join-btn">Join Prime</button></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section class="hero ptb-80">
+            <div class="container">
+                <div class="row">
+                    <div class="w-6 mt-40 ">
+                        <h1>Welcome to Prime Video</h1>
+                        <p>Join Prime to watch the latest movies, TV shows and award-winning Amazon Originals</p>
+                        <button class="sign-btn">Sign in to Join Prime</button>
+                    </div>
+                    <div class="w-6"></div>
+
+                </div>
+            </div>
+        </section>
+        <section class="banner ptb-80">
+            <div class="container">
+                <div class="row">
+                    <div class="w-6 mt-100 ">
+                        <h2>Movie rentals on Prime Video</h2>
+                        <p>Early Access to new movies, before digital subscription</p>
+                        <button class="sign-btn">Rent Now</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="banner2 ptb-80">
+            <div class="container">
+                <div class="row d-flex">
+                    <div class="w-6 mt-100 ">
+                        <h2>Your favorite subscriptions all in one place</h2>
+                        <p>Customers can subscribe to get access to a variety of premium and specialty content, easily
+                            accessible within the Prime Video app</p>
+                    </div>
+                    <div class="w-6 box d-flex flex-wrap ">
+                        <div class="w-4 logo-div"><img src="./images/tv+.jpeg" alt="tv"></div>
+                        <div class="w-4 logo-div"><img src="./images/Crunchyroll.jpeg" alt="Crunchyroll"></div>
+                        <div class="w-4 logo-div"><img src="./images/loingatesplay.jpeg" alt="loingatesplay"></div>
+                        <div class="w-4 logo-div"><img src="./images/Discovery.jpeg" alt="Discovery"></div>
+                        <div class="w-4 logo-div"><img src="./images/Anime.jpeg" alt="Anime"></div>
+                        <div class="w-4 logo-div"><img src="./images/Manoramamax.jpeg" alt="Manoramamax"></div>
+                        <div class="w-4 logo-div"><img src="./images/Chaupal.jpeg" alt="Chaupal"> </div>
+                        <div class="w-4 logo-div"><img src="./images/BBC.jpeg" alt="BBC"></div>
+                        <div class="w-4 logo-div"><img src="./images/Fancode.jpeg" alt="Fancode"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="w-6"></div>
+        </section>
+    </main>
+    <footer>
+         <div class="container">
+            <div class="row w-12">
+                <div class=" w-2 prime-logo">
+                    <a href="#"> <img src="./images/prime.png" alt="prime"></a>
+                </div>
+            </div>
+            <p class="links">
+                <a href="#">Terms and Privacy Notice</a> |
+                <a href="#">Send us feedback</a> |
+                <a href="#">Help</a>
+            </p>
+            <p class="copy">© 1996–2025, Amazon.com, Inc. or its affiliates</p>
+        </div>
+    </footer>
+</body>
+
+</html>
